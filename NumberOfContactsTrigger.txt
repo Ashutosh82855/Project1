@@ -1,0 +1,45 @@
+Trigger :-
+
+trigger TotalContactsOnAccount on Contact (After insert, after delete, after update, after undelete) {
+
+    if(trigger.isAfter && (trigger.isInsert || trigger.isDelete || trigger.isUpdate || trigger.isUndelete)){
+        totalContactHandler.countContact(Trigger.new,Trigger.old);
+    }
+}
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+
+Class :-
+
+public class totalContactHandler {
+    public static void countContact(List<contact> newList, List<contact> oldList){
+        set<id> accountIds = new set<id>();
+        if(newList != null)
+        {
+          for(contact c : newList){
+            if(c.accountId != null){
+                accountIds.add(c.accountId);
+            }
+          }  
+        }
+        
+        if(OldList != null){
+           for(contact c : OldList){
+              if(c.accountId != null){
+                accountIds.add(c.accountId);
+              }
+           } 
+        }
+        
+        
+        List<Account> accounts = [Select id,Number_of_Contacts__c,(Select id from contacts) from Account where id in : accountIds ];
+        if(!accounts.isEmpty())
+        {
+            for(account acc : accounts){
+                acc.Number_of_Contacts__c = acc.contacts.size();
+            }
+        }
+        update accounts;
+    }
